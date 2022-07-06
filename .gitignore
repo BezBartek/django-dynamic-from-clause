@@ -1,0 +1,26 @@
+# Ignore virtual environments
+.env/
+
+# Ignore Python byte code cache
+*.pyc
+__pycache__
+.cache
+
+# Ignore coverage reports
+.coverage
+reports/
+
+# Ignore build results
+*.egg-info/
+pip-wheel-metadata/
+dist/
+
+# Ignore stupid .DS_Store
+.DS_Store
+
+# Ignore temporary tox and pytest environments
+.tox/
+.pytest_cache/
+
+# Ignore PyCharm / IntelliJ files
+.idea/
