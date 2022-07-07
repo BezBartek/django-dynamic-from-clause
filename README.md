@@ -1,8 +1,3 @@
-WORK IN PROGRESS, 
-LIB IS ON INITIAL STATE,
-CONSIDER BEFORE HEAVY USAGE
-
-
 # **IDEA**
 
 Be able to define the **sql FROM clause** dynamically and fill it with args. 
@@ -14,8 +9,7 @@ It is what we are trying to do here.
 Anything which have tabular interface output, like: table, view, function, queries, and so on, should be able to map to dedicated django model and be able to use the orm methods  (like select related, prefetch, annotations and others). 
 
 # Examples:
-### Bases on query
-#### Aggregation
+#### Wrap aggregation result
 ```
 # regular models
 class Owner(models.Model):
@@ -41,7 +35,7 @@ aggregated_inv_records = AggregatedInventoryPerspective.objects.set_source_from_
 ).select_related('owner')
 ```
 
-#### Window on same queryset
+#### Filter trough results of the window annotation on same queryset
 ```
 # Regular django model, with extra objects manager 
 class Human(models.Model):
@@ -65,19 +59,13 @@ human_with_rank_equal_two = Human.dynamic_from_clause_objects.set_source_from_qu
 ).filter(rank=2)
 ```
 
-### Bases on some tablear function
-#### My tabular function
-`
-cooming soon, for now check tests
-`
-
-#### Let's use some database functions - check what is lock-ed on my table 
+#### Let's use some database functions - check which rows are lock-ed on provided table
 ```
 class PGRowLocks(Func):
     function = 'pgrowlocks'
     template = "%(function)s('%(expressions)s')"
 
-# This model maps to the pgrowslocks function which return all locks on provided table
+# This model maps to the pgrowslocks function output which is all locks on provided table
 class PgRowsLocks(DynamicBaseModel):
     EXPRESSION_CLASS = PGRowLocks 
 
@@ -88,11 +76,20 @@ class PgRowsLocks(DynamicBaseModel):
     modes = models.PositiveIntegerField(models.TextField())
     pids = ArrayField(models.SmallIntegerField())
 
-# Now we can easy check what is locked on what table ")
+# Now we can easy check what is locked on which table :)
 locked_rows = PgRowsLocks.objects.fill_expression_with_parameters(
         SomeMode._meta.db_table
 ).all()    
 ```
+
+
+#### My tabular function
+`
+cooming soon, for now check tests
+`
+
+## Note:
+We have to specify which field is the primary key on the model 
 
 # How it works?
 
@@ -111,7 +108,6 @@ I think that this approach has sense cus I saw a lot of problems or ugly solutio
 I think that this library contains a good idea, and a reasonable attempt, to solve issues like the above.
 
 # TODO:
-- In the case when we forward not declared fields from nested queryset to the parent, we should be able to filter through them not by using extra.
 - Add tests across multiple django versions
 - Migrations (here or in other library like the django-db-views - db functions can be a good replacement for views, cus views always calculate the whole dataset which can raise performance issues). 
 
