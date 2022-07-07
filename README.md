@@ -14,7 +14,11 @@ Anything which have tabular interface output, like: table, view, function, queri
 
 # Examples:
 #### Wrap aggregation result
-```
+```python
+from django.db import models
+
+from django_dynamic_from_clause.models import DynamicFromClauseBaseModel
+
 # regular models
 class Owner(models.Model):
     name = models.CharField(max_length=512)
@@ -22,25 +26,64 @@ class Owner(models.Model):
 
 class InventoryRecord(models.Model):
     count = models.IntegerField()
-    owner = models.ForeignKey(Owner, related_name='inventory_records', on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        Owner, related_name='inventory_records', on_delete=models.CASCADE
+    )
 
 
 # Our perspective for the InventoryRecordQuerySet
 class AggregatedInventoryPerspective(DynamicFromClauseBaseModel):
     count_sum = models.IntegerField()
-    owner = models.ForeignKey(Owner, related_name='+', on_delete=models.DO_NOTHING, primary_key=True)
+    owner = models.ForeignKey(
+        Owner, related_name='aggregated_inventory', on_delete=models.DO_NOTHING,
+        primary_key=True # We have to pick a field which will mimic the primary key
+     )
 
 # Lets make some aggregations
-aggr_inv_records_queryset = InventoryRecord.objects.values("owner").annotate(count_sum=models.Sum("count"))
+aggr_inv_records_queryset = InventoryRecord.objects.values(
+    "owner"
+).annotate(
+    count_sum=models.Sum("count")
+)
+# Generated SQL is: 
+# 'SELECT "test_app_inventoryrecord"."owner_id", SUM("test_app_inventoryrecord"."count") AS "count_sum" 
+# FROM "test_app_inventoryrecord" 
+# GROUP BY "test_app_inventoryrecord"."owner_id"'
+#
+# And example output is: <QuerySet [{'owner': 36, 'count_sum': 24}]>
+
 
 # Let use ORM on the results from the aggr_inv_records_queryset
 aggregated_inv_records = AggregatedInventoryPerspective.objects.set_source_from_queryset(
     aggr_inv_records_queryset
 ).select_related('owner')
+
+# Generated SQL is:
+# SELECT 
+#   "_aggregatedinventoryperspective"."count_sum", 
+#   "_aggregatedinventoryperspective"."owner_id",
+#   "test_app_owner"."id", "test_app_owner"."name" 
+# FROM (
+#    SELECT "test_app_inventoryrecord"."owner_id", SUM("test_app_inventoryrecord"."count") AS "count_sum" 
+#    FROM "test_app_inventoryrecord" 
+#    GROUP BY "test_app_inventoryrecord"."owner_id") AS "_aggregatedinventoryperspective" 
+#    INNER JOIN "test_app_owner" ON ("_aggregatedinventoryperspective"."owner_id" = "test_app_owner"."id"
+)
+# and example output is: 
+#   <DynamicFromClauseQuerySet [<AggregatedInventoryPerspective: AggregatedInventoryPerspective object (36)>]>
+aggregated_inv_records.get().owner  # return an owner :), Our perspective can be prefetched from the Owner model as well.
+
 ```
 
 #### Filter trough results of the window annotation on same queryset
-```
+```python
+from django.db import models
+from django.db.models import QuerySet
+from django.db.models import F, Window
+from django.db.models.functions import Rank
+
+from django_dynamic_from_clause.query import DynamicFromClauseQuerySet
+
 # Regular django model, with extra objects manager 
 class Human(models.Model):
     objects = QuerySet.as_manager()
@@ -48,29 +91,56 @@ class Human(models.Model):
     weight = models.IntegerField()
     height = models.IntegerField()
 
-# We would like to annotate rank, and filter trought it, 
+# We would like to annotate rank, and filter through it, 
 # which is imposible in regular django without raw query. 
-# we can easy solve it here:
-
+# Django will throw NotSupportedError
 humans_with_rank = Human.objects.all().annotate(rank=Window(
     expression=Rank(),
     order_by=[F('height'), F('weight')]
 ))
 
-# Now we can use our manager, to make query from the query
-human_with_rank_equal_two = Human.dynamic_from_clause_objects.set_source_from_queryset(
+# But we can easily overcome that!
+# By using our manager, to make query from the query
+humans_with_rank_less_or_equal_two = Human.dynamic_from_clause_objects.set_source_from_queryset(
     humans_with_rank, forward_fields=['rank']
-).filter(rank=2)
+).get(rank__lte=2)
+# Let's see how generated query looks like:
+# SELECT 
+#   "test_app_human"."id", "test_app_human"."weight",
+#   "test_app_human"."height", "test_app_human"."rank" AS "rank" 
+# FROM (
+#   SELECT 
+#       "test_app_human"."id",
+#       "test_app_human"."weight", 
+#       "test_app_human"."height",
+#       RANK() OVER (ORDER BY "test_app_human"."height", "test_app_human"."weight") AS "rank" 
+#   FROM "test_app_human"
+# ) AS "test_app_human" 
+# WHERE "test_app_human"."rank" <= 2
+# And we still deal with a Human objects!
+# <DynamicFromClauseQuerySet [<Human: Human object (218)>, <Human: Human object (216)>]>
 ```
 
 #### Let's use some database functions - check which rows are lock-ed on provided table
-```
-class PGRowLocks(Func):
+```python
+from django.db import models
+from django.db.models import Func
+from django.contrib.postgres.fields import ArrayField
+
+from django_dynamic_from_clause.models import DynamicFromClauseBaseModel
+
+
+class ExampleModel(models.Model):
+    pass
+
+
+class PGRowLocks(Func):  # you have to create pgrowlock extension first
     function = 'pgrowlocks'
     template = "%(function)s('%(expressions)s')"
 
+
 # This model maps to the pgrowslocks function output which is all locks on provided table
-class PgRowsLocks(DynamicBaseModel):
+class PgRowsLocks(DynamicFromClauseBaseModel):
     EXPRESSION_CLASS = PGRowLocks 
 
     locked_row = ArrayField(models.PositiveIntegerField(), size=2, primary_key=True)
@@ -82,11 +152,11 @@ class PgRowsLocks(DynamicBaseModel):
 
 # Now we can easy check what is locked on which table :)
 locked_rows = PgRowsLocks.objects.fill_expression_with_parameters(
-        SomeMode._meta.db_table
+        ExampleModel._meta.db_table
 ).all()    
 ```
-
-
+[
+]()
 #### My tabular function
 `
 cooming soon, for now check tests

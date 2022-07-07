@@ -13,7 +13,11 @@ def test_execute_from_queryset():
     InventoryRecord.objects.create(count=12, owner=owner)
     InventoryRecord.objects.create(count=12, owner=owner)
 
-    aggr_inv_records_queryset = InventoryRecord.objects.values("owner").annotate(count_sum=models.Sum("count"))
+    aggr_inv_records_queryset = InventoryRecord.objects.values(
+        "owner"
+    ).annotate(
+        count_sum=models.Sum("count")
+    )
 
     aggregated_inv_records = AggregatedInventoryPerspective.objects.set_source_from_queryset(
         aggr_inv_records_queryset
