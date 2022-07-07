@@ -1,5 +1,9 @@
-# **IDEA**
+## How to install?
 
+    pip install django-dynamic-from-clause
+
+
+# **IDEA**
 Be able to define the **sql FROM clause** dynamically and fill it with args. 
 On django models the sql FROM clause is the db table name or other static name (configured in Meta).
 
