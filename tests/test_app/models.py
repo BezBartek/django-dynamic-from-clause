@@ -21,7 +21,7 @@ class InventoryRecord(models.Model):
 # regular table which using Dynamic Manager
 class Human(models.Model):
     objects = QuerySet.as_manager()
-    dynamic_for_objects = DynamicFromClauseQuerySet.as_manager()
+    dynamic_from_clause_objects = DynamicFromClauseQuerySet.as_manager()
     weight = models.IntegerField()
     height = models.IntegerField()
 

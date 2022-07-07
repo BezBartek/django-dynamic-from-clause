@@ -13,7 +13,7 @@ def test_execute_from_queryset():
     InventoryRecord.objects.create(count=12, owner=owner)
     InventoryRecord.objects.create(count=12, owner=owner)
 
-    aggr_inv_records_queryset = InventoryRecord.objects.all().values("owner").annotate(count_sum=models.Sum("count"))
+    aggr_inv_records_queryset = InventoryRecord.objects.values("owner").annotate(count_sum=models.Sum("count"))
 
     aggregated_inv_records = AggregatedInventoryPerspective.objects.set_source_from_queryset(
         aggr_inv_records_queryset
@@ -27,6 +27,10 @@ def test_execute_from_queryset():
 
 @pytest.mark.django_db
 def test_execution_on_same_model_which_using_manager_only_with_forward_fields():
+    """
+    Check the Human model. He has declared two managers. Regular one and the dynamic from clause manager.
+    Human is a regular django model.
+    """
     expected_human_with_rank_2 = Human.objects.create(height=177, weight=88)
     Human.objects.create(height=177, weight=92)
     Human.objects.create(height=134, weight=50)
@@ -36,9 +40,9 @@ def test_execution_on_same_model_which_using_manager_only_with_forward_fields():
         order_by=[F('height'), F('weight')]
     ))
 
-    humans_with_rank_2 = Human.dynamic_for_objects.set_source_from_queryset(
+    humans_with_rank_2 = Human.dynamic_from_clause_objects.set_source_from_queryset(
         humans_with_rank, forward_fields=['rank']
-    ).extra(where=['rank = 2'])
+    ).filter(rank=2)
     assert len(humans_with_rank_2) == 1
     assert humans_with_rank_2[0] == expected_human_with_rank_2
 

@@ -16,14 +16,54 @@ Anything which have tabular interface output, like: table, view, function, queri
 # Examples:
 ### Bases on query
 #### Aggregation
-`
-cooming soon, for now check tests
-`
+```
+# regular models
+class Owner(models.Model):
+    name = models.CharField(max_length=512)
+
+
+class InventoryRecord(models.Model):
+    count = models.IntegerField()
+    owner = models.ForeignKey(Owner, related_name='inventory_records', on_delete=models.CASCADE)
+
+
+# Our perspective for the InventoryRecordQuerySet
+class AggregatedInventoryPerspective(DynamicFromClauseBaseModel):
+    count_sum = models.IntegerField()
+    owner = models.ForeignKey(Owner, related_name='+', on_delete=models.DO_NOTHING, primary_key=True)
+
+# Lets make some aggregations
+aggr_inv_records_queryset = InventoryRecord.objects.values("owner").annotate(count_sum=models.Sum("count"))
+
+# Let use ORM on the results from the aggr_inv_records_queryset
+aggregated_inv_records = AggregatedInventoryPerspective.objects.set_source_from_queryset(
+    aggr_inv_records_queryset
+).select_related('owner')
+```
 
 #### Window on same queryset
-`
-cooming soon, for now check tests
-`
+```
+# Regular django model, with extra objects manager 
+class Human(models.Model):
+    objects = QuerySet.as_manager()
+    dynamic_from_clause_objects = DynamicFromClauseQuerySet.as_manager()
+    weight = models.IntegerField()
+    height = models.IntegerField()
+
+# We would like to annotate rank, and filter trought it, 
+# which is imposible in regular django without raw query. 
+# we can easy solve it here:
+
+humans_with_rank = Human.objects.all().annotate(rank=Window(
+    expression=Rank(),
+    order_by=[F('height'), F('weight')]
+))
+
+# Now we can use our manager, to make query from the query
+human_with_rank_equal_two = Human.dynamic_from_clause_objects.set_source_from_queryset(
+    humans_with_rank, forward_fields=['rank']
+).filter(rank=2)
+```
 
 ### Bases on some tablear function
 #### My tabular function

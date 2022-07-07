@@ -3,7 +3,7 @@ version: "3"
 services:
   postgres:
     image: postgres
-    container_name: django_dynamic_from_clause
+    container_name: django-dynamic-from-clause
     environment:
       POSTGRES_DB: "${POSTGRES_DB}"
       POSTGRES_USER: "${POSTGRES_USER}"
