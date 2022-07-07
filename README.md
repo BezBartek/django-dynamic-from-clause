@@ -71,10 +71,28 @@ human_with_rank_equal_two = Human.dynamic_from_clause_objects.set_source_from_qu
 cooming soon, for now check tests
 `
 
-#### Let's check what is lock-ed on my table 
-`
-cooming soon, for now check tests
-`
+#### Let's use some database functions - check what is lock-ed on my table 
+```
+class PGRowLocks(Func):
+    function = 'pgrowlocks'
+    template = "%(function)s('%(expressions)s')"
+
+# This model maps to the pgrowslocks function which return all locks on provided table
+class PgRowsLocks(DynamicBaseModel):
+    EXPRESSION_CLASS = PGRowLocks 
+
+    locked_row = ArrayField(models.PositiveIntegerField(), size=2, primary_key=True)
+    locker = models.PositiveBigIntegerField()
+    multi = models.BooleanField()
+    xids = ArrayField(models.PositiveIntegerField())
+    modes = models.PositiveIntegerField(models.TextField())
+    pids = ArrayField(models.SmallIntegerField())
+
+# Now we can easy check what is locked on what table ")
+locked_rows = PgRowsLocks.objects.fill_expression_with_parameters(
+        SomeMode._meta.db_table
+).all()    
+```
 
 # How it works?
 
