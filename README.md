@@ -10,13 +10,14 @@
     pip install django-dynamic-from-clause
 
 # **IDEA**
-Be able to define the **sql FROM clause** dynamically and fill it with args. 
-On django models the sql FROM clause is the db table name or other static name (configured in Meta).
+**Tthe IDEA is to be able to map a tabular functions, any sql/queries outputs, and other, to Django models!**
 
-**The idea is to change that!**. By that we are able to map a tabular functions, any sql/queries outputs, and other, to Django models!   
-It is what we are trying to do here. 
+We want any database operation/object which has tabular output (such as table, view, function, queries, and so on), to be mapped
+to a dedicated django model. We want to be able to use the ORM methods (like select related, prefetch, annotations
+and others) on that model.
 
-Anything which have tabular interface output, like: table, view, function, queries, and so on, should be able to map to dedicated django model and be able to use the orm methods  (like select related, prefetch, annotations and others). 
+We are doing so by giving you the ability to define the **SQL FROM clause** dynamically and fill (if it is a function) it with args.
+See examples to check how powerful it might be.
 
 # Examples:
 #### Wrap aggregation result
@@ -179,7 +180,7 @@ The Code is easy. The only thing which we do here is to extend the django SQL co
 
 I think that this approach has sense cus I saw a lot of problems or ugly solutions which have tried to:   
 * use table functions,  
-* serialize objects on aggregated queryset,  
+* serialize objects on aggregated queryset (better to deal with objects then {"a__b": value} after aggregation)  
 * make selects over nested queries,  
 * replacing what database should do with python code,   
 * "manually" prefetching on serializers lvl, 
