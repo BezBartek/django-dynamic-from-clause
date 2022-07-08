@@ -1,5 +1,3 @@
-DJANGO DYNAMIC FROM CLAUSE
-
 |  |  |                                                                                                                             |
 |--------------------|---------------------|-----------------------------------------------------------------------------------------------------------------------------|
 | :memo: | **License** | [![License](https://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org)                                     |
@@ -190,8 +188,7 @@ I think that this approach has sense cus I saw a lot of problems or ugly solutio
 I think that this library contains a good idea, and a reasonable attempt, to solve issues like the above.
 
 # TODO:
-- Add tests across multiple django versions
 - Migrations (here or in other library like the django-db-views - db functions can be a good replacement for views, cus views always calculate the whole dataset which can raise performance issues). 
 
 # How to work with repo
-add your .env file in the main directory, which set up POSTGRES env variables. See conftest.py file.
+add your .env file in the main directory, which set up POSTGRES env variables. Check conftest.py file for more details.
