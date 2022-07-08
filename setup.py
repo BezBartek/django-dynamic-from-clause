@@ -7,13 +7,15 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="django-dynamic-from-clause",
-    version="0.0.2",
+    version="0.0.4",
     description="Gives the ability to dynamically configure SQL For clause for models. "
                 "This give you ability to wrap any sql into models and use ORM features on it.",
     keywords=[
+        "Django",
         "Django from",
         "From clause", "Dynamic from clause", "Django table function",
-        "Django nested query", "Expression to model", "Wrap queryset"
+        "Django nested query", "Expression to model", "Wrap queryset",
+        "Dynamic perspective", "Evaluate model from queryset"
     ],
     long_description=README,
     long_description_content_type="text/markdown",

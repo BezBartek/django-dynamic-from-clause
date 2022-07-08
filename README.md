@@ -1,7 +1,15 @@
+DJANGO DYNAMIC FROM CLAUSE
+
+|  |  |                                                                                                                             |
+|--------------------|---------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| :memo: | **License** | [![License](https://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org)                                     |
+| :package: | **PyPi** | [![PyPi](https://badge.fury.io/py/django-dynamic-from-clause.svg)](https://pypi.org/project/django-dynamic-from-clause/)    |
+| <img src="https://cdn.iconscout.com/icon/free/png-256/django-1-282754.png" width="22px" height="22px" align="center" /> | **Django Versions** | 2.0, 2.1, 2.2, 3.0, 3.1, 3.2, 4.0, 4.1                                                                                      |
+| <img src="http://www.iconarchive.com/download/i73027/cornmanthe3rd/plex/Other-python.ico" width="22px" height="22px" align="center" /> | **Python Versions** | 3.6, 3.7, 3.8, 3.9, 3.10                                                                                                    |
+
 ## How to install?
 
     pip install django-dynamic-from-clause
-
 
 # **IDEA**
 Be able to define the **sql FROM clause** dynamically and fill it with args. 
@@ -35,7 +43,9 @@ class InventoryRecord(models.Model):
 class AggregatedInventoryPerspective(DynamicFromClauseBaseModel):
     count_sum = models.IntegerField()
     owner = models.ForeignKey(
-        Owner, related_name='aggregated_inventory', on_delete=models.DO_NOTHING,
+        Owner,
+        related_name='+', # Feel free to set the related name and use it. It will work without problems. 
+        on_delete=models.DO_NOTHING,
         primary_key=True # We have to pick a field which will mimic the primary key
      )
 
@@ -155,8 +165,6 @@ locked_rows = PgRowsLocks.objects.fill_expression_with_parameters(
         ExampleModel._meta.db_table
 ).all()    
 ```
-[
-]()
 #### My tabular function
 `
 cooming soon, for now check tests
@@ -184,7 +192,6 @@ I think that this library contains a good idea, and a reasonable attempt, to sol
 # TODO:
 - Add tests across multiple django versions
 - Migrations (here or in other library like the django-db-views - db functions can be a good replacement for views, cus views always calculate the whole dataset which can raise performance issues). 
-
 
 # How to work with repo
 add your .env file in the main directory, which set up POSTGRES env variables. See conftest.py file.

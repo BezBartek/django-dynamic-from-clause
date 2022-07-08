@@ -24,3 +24,6 @@ dist/
 
 # Ignore PyCharm / IntelliJ files
 .idea/
+
+# tox
+build
