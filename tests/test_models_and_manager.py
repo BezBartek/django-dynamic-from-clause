@@ -30,7 +30,7 @@ def test_execute_from_queryset():
 
 
 @pytest.mark.django_db
-def test_execution_on_same_model_which_using_manager_only_with_forward_fields():
+def test_execution_on_same_model_which_using_manager_only_with_annotated_fields_to_forward():
     """
     Check the Human model. He has declared two managers. Regular one and the dynamic from clause manager.
     Human is a regular django model.
@@ -45,10 +45,32 @@ def test_execution_on_same_model_which_using_manager_only_with_forward_fields():
     ))
 
     humans_with_rank_2 = Human.dynamic_from_clause_objects.set_source_from_queryset(
-        humans_with_rank, forward_fields=['rank']
+        humans_with_rank, annotated_fields_to_forward=['rank']
     ).filter(rank=2)
     assert len(humans_with_rank_2) == 1
     assert humans_with_rank_2[0] == expected_human_with_rank_2
+    assert humans_with_rank_2[0].rank == 2
+
+
+@pytest.mark.django_db
+def test_execution_on_same_model_which_using_manager_only_annotated_fields_to_forward_not_provided():
+    expected_human_with_rank_2 = Human.objects.create(height=177, weight=88)
+    Human.objects.create(height=177, weight=92)
+    Human.objects.create(height=134, weight=50)
+
+    humans_with_rank = Human.objects.all().annotate(rank=Window(
+        expression=Rank(),
+        order_by=[F('height'), F('weight')]
+    )).annotate(height_and_weight=F('height') * F('weight'))
+
+    humans_with_rank_2 = Human.dynamic_from_clause_objects.set_source_from_queryset(
+        humans_with_rank
+    ).filter(rank=2)
+    assert len(humans_with_rank_2) == 1
+    human_with_rank_2 = humans_with_rank_2[0]
+    assert human_with_rank_2 == expected_human_with_rank_2
+    assert human_with_rank_2.rank == 2
+    assert human_with_rank_2.height_and_weight
 
 
 @pytest.mark.django_db

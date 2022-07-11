@@ -10,7 +10,7 @@
     pip install django-dynamic-from-clause
 
 # **IDEA**
-**Tthe IDEA is to be able to map a tabular functions, any sql/queries outputs, and other, to Django models!**
+**The IDEA is to be able to map a tabular functions, any sql/queries outputs, and other, to Django models!**
 
 We want any database operation/object which has tabular output (such as table, view, function, queries, and so on), to be mapped
 to a dedicated django model. We want to be able to use the ORM methods (like select related, prefetch, annotations
@@ -171,6 +171,9 @@ cooming soon, for now check tests
 
 ## Note:
 We have to specify which field is the primary key on the model 
+
+## Available methods
+...
 
 # How it works?
 
