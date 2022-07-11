@@ -7,7 +7,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="django-dynamic-from-clause",
-    version="0.0.4",
+    version="0.0.5",
     description="Gives the ability to dynamically configure SQL For clause for models. "
                 "This give you ability to wrap any sql into models and use ORM features on it.",
     keywords=[
