@@ -77,7 +77,7 @@ aggregated_inv_records = AggregatedInventoryPerspective.objects.set_source_from_
 #    FROM "test_app_inventoryrecord" 
 #    GROUP BY "test_app_inventoryrecord"."owner_id") AS "_aggregatedinventoryperspective" 
 #    INNER JOIN "test_app_owner" ON ("_aggregatedinventoryperspective"."owner_id" = "test_app_owner"."id"
-)
+# )
 # and example output is: 
 #   <DynamicFromClauseQuerySet [<AggregatedInventoryPerspective: AggregatedInventoryPerspective object (36)>]>
 aggregated_inv_records.get().owner  # return an owner :), Our perspective can be prefetched from the Owner model as well.
@@ -111,7 +111,7 @@ humans_with_rank = Human.objects.all().annotate(rank=Window(
 # But we can easily overcome that!
 # By using our manager, to make query from the query
 humans_with_rank_less_or_equal_two = Human.dynamic_from_clause_objects.set_source_from_queryset(
-    humans_with_rank, forward_fields=['rank']
+    humans_with_rank
 ).get(rank__lte=2)
 # Let's see how generated query looks like:
 # SELECT 
