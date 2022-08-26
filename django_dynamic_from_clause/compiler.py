@@ -10,10 +10,11 @@ class DynamicFormClauseSQLCompiler(SQLCompiler):
         assert self.query.source, "Source must be set before evaluation"
         source_sql, params = self.query.source.as_sql(self, self.connection)
 
+        # modify the result
         if isinstance(self.query.source, Query):
-            result[0] = f"({source_sql % tuple(params)}) AS {result[0]}"
+            result[0] = f"({source_sql}) AS {result[0]}"
         elif isinstance(self.query.source, Expression):
-            result[0] = f"{source_sql % tuple(params)} AS {result[0]}"
+            result[0] = f"{source_sql} AS {result[0]}"
         else:
             raise NotImplementedError("Invalid source type")
         return result, params
